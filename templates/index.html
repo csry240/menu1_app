@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>一人暮らし向け献立管理アプリ</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background-color: #f4f4f4; }
+        .form-group { margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <h1>献立の登録</h1>
+    <form method="POST">
+        <div class="form-group">
+            <label>日付: <input type="date" name="date" required></label>
+        </div>
+        <div class="form-group">
+            <label>ジャンル: <input type="text" name="genre" placeholder="例: 和食" required></label>
+        </div>
+        <div class="form-group">
+            <label>主菜: <input type="text" name="main_dish" placeholder="例: 豚の生姜焼き" required></label>
+        </div>
+        <div class="form-group">
+            <label>副菜: <input type="text" name="side_dish" placeholder="例: ほうれん草のおひたし"></label>
+        </div>
+        <div class="form-group">
+            <label>食費(円): <input type="number" name="cost" required></label>
+        </div>
+        <button type="submit">登録する</button>
+    </form>
+
+    <h2>献立履歴</h2>
+    <table>
+        <tr>
+            <th>日付</th>
+            <th>ジャンル</th>
+            <th>主菜</th>
+            <th>副菜</th>
+            <th>食費(円)</th>
+        </tr>
+        {% for meal in meals %}
+        <tr>
+            <td>{{ meal['日付'] }}</td>
+            <td>{{ meal['ジャンル'] }}</td>
+            <td>{{ meal['主菜'] }}</td>
+            <td>{{ meal['副菜'] }}</td>
+            <td>{{ meal['食費'] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
