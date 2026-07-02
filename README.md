@@ -55,3 +55,89 @@
 ターミナル（またはコマンドプロンプト）を開き、Flaskをインストールします。
 ```bash
 pip install flask
+
+## 📊 設計図（UMLダイアグラム）
+
+GitHub上では、以下のコードが自動的に図としてレンダリングされます。
+
+### 1. ユースケース図 (Use Case Diagram)
+ユーザーがこのアプリで何ができるかを表した図です。
+
+```mermaid
+graph TD
+    User((大学生ユーザー)) -->|1. 条件入力| UC1(🤖 献立を提案してもらう)
+    User -->|2. ボタン押下| UC2(✨ 提案された献立を記録する)
+    User -->|3. 画面確認| UC3(📝 これまでに食べた履歴を見る)
+
+    style User fill:#fff,stroke:#333,stroke-width:2px
+```
+
+### 2. クラス図 (Class Diagram)
+アプリのデータ構造と関数の関係性を表した図です。
+
+```mermaid
+classDiagram
+    class FlaskApp {
+        +index() Response
+        +init_meals_csv()
+        +load_recipes() List
+        +load_meals() List
+        +make_suggestion(budget, genre, items_count) Dict
+    }
+    class RecipeCSV {
+        +id: int
+        +menu_name: str
+        +category: str
+        +genre: str
+        +price: int
+    }
+    class MealCSV {
+        +日付: str
+        +ジャンル: str
+        +主菜: str
+        +副菜: str
+        +食費: int
+    }
+    class HTML_Template {
+        +index.html
+    }
+
+    FlaskApp --> RecipeCSV : 提案のために読み込む
+    FlaskApp --> MealCSV : 履歴の読込・追記を行う
+    FlaskApp --> HTML_Template : データを渡して描画する
+```
+
+### 3. シーケンス図 (Sequence Diagram)
+ユーザーの操作に合わせて、画面・プログラム・CSVファイルの間でどのようにデータがやり取りされるかを表した図です。
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor ユーザー
+    participant 画面 as index.html (ブラウザ)
+    participant アプリ as app.py (Flask)
+    participant 履歴 as meals.csv
+
+    ユーザー->>画面: 「提案してもらう」ボタンを押す
+    画面->>アプリ: POSTリクエスト (予算、ジャンル等)
+    アプリ->>アプリ: make_suggestion() で前日と被らない献立を計算
+    アプリ-->>画面: 提案結果をのせて画面を表示
+    ユーザー->>画面: 「記録する」ボタンを押す
+    画面->>アプリ: POSTリクエスト (確定した献立データ)
+    アプリ->>履歴: meals.csv に1行追記
+    アプリ-->>画面: リダイレクト (最新の履歴一覧を表示)
+```
+
+### 4. 状態遷移図 (State Diagram)
+ユーザーの操作によって、アプリの画面がどういう「状態」に移り変わるかを表した図です。
+
+```mermaid
+stateDiagram-v2
+    [*] --> 初期状態_GET : アプリにアクセス
+    
+    初期状態_GET --> 献立提案状態_POST : 「提案してもらう」ボタンを押す
+    献立提案状態_POST --> 献立提案状態_POST : 再度別の条件で提案させる
+    
+    献立提案状態_POST --> 履歴登録処理 : 「記録する」ボタンを押す
+    履歴登録処理 --> 初期状態_GET : CSVへの書き込み完了後、リダイレクト
+```

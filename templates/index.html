@@ -2,54 +2,95 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>一人暮らし向け献立管理アプリ</title>
+    <title>一人暮らし向け献立管理・提案アプリ</title>
     <style>
-        body { font-family: sans-serif; margin: 20px; }
-        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-        th { background-color: #f4f4f4; }
-        .form-group { margin-bottom: 10px; }
+        body { font-family: sans-serif; margin: 30px; background-color: #fafafa; color: #333; }
+        .container { max-width: 900px; margin: auto; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #4CAF50; color: white; }
+        .btn { background: #4CAF50; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-reg { background: #008CBA; }
+        .flex-container { display: flex; gap: 20px; }
+        .flex-child { flex: 1; }
     </style>
 </head>
 <body>
-    <h1>献立の登録</h1>
-    <form method="POST">
-        <div class="form-group">
-            <label>日付: <input type="date" name="date" required></label>
-        </div>
-        <div class="form-group">
-            <label>ジャンル: <input type="text" name="genre" placeholder="例: 和食" required></label>
-        </div>
-        <div class="form-group">
-            <label>主菜: <input type="text" name="main_dish" placeholder="例: 豚の生姜焼き" required></label>
-        </div>
-        <div class="form-group">
-            <label>副菜: <input type="text" name="side_dish" placeholder="例: ほうれん草のおひたし"></label>
-        </div>
-        <div class="form-group">
-            <label>食費(円): <input type="number" name="cost" required></label>
-        </div>
-        <button type="submit">登録する</button>
-    </form>
+<div class="container">
 
-    <h2>献立履歴</h2>
-    <table>
-        <tr>
-            <th>日付</th>
-            <th>ジャンル</th>
-            <th>主菜</th>
-            <th>副菜</th>
-            <th>食費(円)</th>
-        </tr>
-        {% for meal in meals %}
-        <tr>
-            <td>{{ meal['日付'] }}</td>
-            <td>{{ meal['ジャンル'] }}</td>
-            <td>{{ meal['主菜'] }}</td>
-            <td>{{ meal['副菜'] }}</td>
-            <td>{{ meal['食費'] }}</td>
-        </tr>
-        {% endfor %}
-    </table>
+    <h1>🍲 一人暮らし向け献立管理・提案アプリ</h1>
+
+    <div class="flex-container">
+        <div class="card flex-child">
+            <h3>🤖 予算・好みに合わせて献立をつくる</h3>
+            <form method="POST">
+                <input type="hidden" name="action" value="suggest">
+                <p>予算(円): <input type="number" name="budget" value="400" min="100" style="width: 80px;"></p>
+                <p>ジャンル: 
+                    <select name="genre">
+                        <option value="和食">和食</option>
+                        <option value="洋食">洋食</option>
+                    </select>
+                </p>
+                <p>希望の品数: 
+                    <input type="radio" name="items_count" value="1"> 主菜のみ
+                    <input type="radio" name="items_count" value="2" checked> 主菜＋副菜
+                </p>
+                <button type="submit" class="btn">献立を提案してもらう</button>
+            </form>
+        </div>
+
+        <div class="card flex-child" style="background-color: #eef9f0;">
+            <h3>✨ 本日の提案メニュー</h3>
+            {% if suggested_menu %}
+                <p><strong>ジャンル:</strong> {{ suggested_menu.genre }}</p>
+                <p><strong>主菜:</strong> {{ suggested_menu.main.menu_name }} ({{ suggested_menu.main.price }}円)</p>
+                {% if suggested_menu.side %}
+                    <p><strong>副菜:</strong> {{ suggested_menu.side.menu_name }} ({{ suggested_menu.side.price }}円)</p>
+                {% endif %}
+                <p><strong>合計目安食費:</strong> <span style="font-size: 1.2em; color: red;">{{ suggested_menu.total_price }}円</span></p>
+                
+                <form method="POST">
+                    <input type="hidden" name="action" value="register">
+                    <input type="hidden" name="date" value="2026-06-25"> <input type="hidden" name="genre" value="{{ suggested_menu.genre }}">
+                    <input type="hidden" name="main_dish" value="{{ suggested_menu.main.menu_name }}">
+                    <input type="hidden" name="side_dish" value="{{ suggested_menu.side.menu_name if suggested_menu.side else 'なし' }}">
+                    <input type="hidden" name="cost" value="{{ suggested_menu.total_price }}">
+                    <button type="submit" class="btn btn-reg">この献立を食べて記録する</button>
+                </form>
+            {% else %}
+                <p style="color: #666;">条件を入力して「提案してもらう」ボタンを押してください。</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>📝 食事履歴（これまでに食べたもの）</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>日付</th>
+                    <th>ジャンル</th>
+                    <th>主菜</th>
+                    <th>副菜</th>
+                    <th>食費</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for meal in meals %}
+                <tr>
+                    <td>{{ meal.日付 }}</td>
+                    <td>{{ meal.ジャンル }}</td>
+                    <td>{{ meal.主菜 }}</td>
+                    <td>{{ meal.副菜 }}</td>
+                    <td>{{ meal.食費 }}円</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
 </body>
 </html>
