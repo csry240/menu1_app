@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>一人暮らし向け献立管理・提案アプリ</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { font-family: sans-serif; margin: 30px; background-color: #fafafa; color: #333; }
         .container { max-width: 900px; margin: auto; }
@@ -15,6 +16,7 @@
         .flex-container { display: flex; gap: 20px; }
         .flex-child { flex: 1; }
         .date-badge { background-color: #4CAF50; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.9em; margin-left: 10px; }
+        .chart-container { position: relative; width: 100%; height: 300px; }
     </style>
 </head>
 <body>
@@ -76,6 +78,13 @@
     </div>
 
     <div class="card">
+        <h3>📊 食費の推移グラフ</h3>
+        <div class="chart-container">
+            <canvas id="costChart"></canvas>
+        </div>
+    </div>
+
+    <div class="card">
         <h3>📝 食事履歴（これまでに食べたもの）</h3>
         <table>
             <thead>
@@ -102,5 +111,42 @@
     </div>
 
 </div>
+
+<script>
+    const ctx = document.getElementById('costChart').getContext('2d');
+    
+    // Pythonから渡されたデータをJavaScriptの配列に展開
+    const labels = {{ graph_labels | tojson }};
+    const data = {{ graph_data | tojson }};
+
+    new Chart(ctx, {
+        type: 'line', // 折れ線グラフ
+        data: {
+            labels: labels,
+            datasets: [{
+                label: '1日の食費 (円)',
+                data: data,
+                borderColor: '#008CBA',
+                backgroundColor: 'rgba(0, 140, 186, 0.1)',
+                borderWidth: 3,
+                tension: 0.1, // 線の丸み
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true, // Y軸を0から始める
+                    title: { display: true, text: '食費（円）' }
+                },
+                x: {
+                    title: { display: true, text: '日付' }
+                }
+            }
+        }
+    });
+</script>
 </body>
 </html>
