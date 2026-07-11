@@ -112,9 +112,14 @@ def index():
         if action == "suggest":
             searched = True
             raw_budget = request.form.get("budget", "")
-            try:
-                budget = int(raw_budget) if raw_budget.strip() else 400
-            except ValueError:
+            
+            # 空文字、スペース、不正文字列を安全にキャッチして400にフォールバック
+            if raw_budget is not None and raw_budget.strip():
+                try:
+                    budget = int(raw_budget)
+                except ValueError:
+                    budget = 400
+            else:
                 budget = 400
 
             genre = request.form.get("genre", "和食")
@@ -123,8 +128,11 @@ def index():
 
         # 「この献立を記録する」ボタンが押されたとき
         elif action == "register":
-            # フォームから日付が取れない場合のバックアップとして今日の日付を設定
-            date = request.form.get("date") or current_today
+            # HTMLのカレンダーから送信された日付を取得。なければ本日の日付
+            date = request.form.get("date")
+            if not date or not date.strip():
+                date = current_today
+                
             genre = request.form.get("genre")
             main_dish = request.form.get("main_dish")
             side_dish = request.form.get("side_dish", "なし")
@@ -138,12 +146,24 @@ def index():
 
     meals = load_meals()
 
+    # 💡 履歴の合計金額を自動計算するロジックを追加
+    total_history_cost = 0
+    for meal in meals:
+        if meal.get("食費"):
+            try:
+                # 「円」などの文字が入っていた場合も考慮して数値変換
+                clean_cost = meal["食費"].replace("円", "").strip()
+                total_history_cost += int(clean_cost)
+            except ValueError:
+                continue
+
     return render_template(
         "index.html",
         meals=meals,
         suggested_menu=suggested_menu,
         searched=searched,
         today_str=current_today,  # ⚠️ 最新の日付を確実にHTMLへ送る
+        total_history_cost=total_history_cost,  # 💡 合計金額をHTMLへ送る
     )
 
 

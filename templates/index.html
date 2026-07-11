@@ -15,6 +15,10 @@
         .flex-container { display: flex; gap: 20px; }
         .flex-child { flex: 1; }
         .date-badge { background-color: #4CAF50; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.9em; margin-left: 10px; }
+        .date-picker-container { margin-bottom: 15px; background: #fff; padding: 10px; border-radius: 4px; border: 1px solid #ddd; }
+        .date-input { padding: 5px; font-size: 1em; border-radius: 4px; border: 1px solid #ccc; }
+        /* 💡 合計金額表示用のスタイルを追加 */
+        .summary-badge { background: #e0f2f1; padding: 12px; border-radius: 6px; font-weight: bold; color: #004d40; margin-bottom: 15px; border-left: 5px solid #009688; }
     </style>
 </head>
 <body>
@@ -45,38 +49,48 @@
         <div class="card flex-child" style="background-color: #eef9f0;">
             <h3>✨ 本日の提案メニュー</h3>
             
-            <p>📅 <strong>対象日:</strong> {{ today_str }}</p>
-            <hr style="border: 0; border-top: 1px solid #ddd; margin-bottom: 15px;">
+            <form method="POST">
+                <!-- 日付を隠しデータではなく、ユーザーがカレンダーから選べるように変更 -->
+                <div class="date-picker-container">
+                    <label>📅 <strong>記録する日付:</strong> 
+                        <input type="date" name="date" class="date-input" value="{{ today_str }}">
+                    </label>
+                </div>
+                <hr style="border: 0; border-top: 1px solid #ddd; margin-bottom: 15px;">
 
-            {% if suggested_menu %}
-                <p><strong>ジャンル:</strong> {{ suggested_menu.genre }}</p>
-                <p><strong>主菜:</strong> {{ suggested_menu.main.menu_name }} ({{ suggested_menu.main.price }}円)</p>
-                {% if suggested_menu.side %}
-                    <p><strong>副菜:</strong> {{ suggested_menu.side.menu_name }} ({{ suggested_menu.side.price }}円)</p>
-                {% endif %}
-                <p><strong>合計目安食費:</strong> <span style="font-size: 1.2em; color: red;">{{ suggested_menu.total_price }}円</span></p>
-                
-                <form method="POST">
+                {% if suggested_menu %}
+                    <p><strong>ジャンル:</strong> {{ suggested_menu.genre }}</p>
+                    <p><strong>主菜:</strong> {{ suggested_menu.main.menu_name }} ({{ suggested_menu.main.price }}円)</p>
+                    {% if suggested_menu.side %}
+                        <p><strong>副菜:</strong> {{ suggested_menu.side.menu_name }} ({{ suggested_menu.side.price }}円)</p>
+                    {% endif %}
+                    <p><strong>合計目安食費:</strong> <span style="font-size: 1.2em; color: red;">{{ suggested_menu.total_price }}円</span></p>
+                    
                     <input type="hidden" name="action" value="register">
-                    <input type="hidden" name="date" value="{{ today_str }}"> 
                     <input type="hidden" name="genre" value="{{ suggested_menu.genre }}">
                     <input type="hidden" name="main_dish" value="{{ suggested_menu.main.menu_name }}">
                     <input type="hidden" name="side_dish" value="{{ suggested_menu.side.menu_name if suggested_menu.side else 'なし' }}">
                     <input type="hidden" name="cost" value="{{ suggested_menu.total_price }}">
                     <button type="submit" class="btn btn-reg">この献立を食べて記録する</button>
-                </form>
-            {% else %}
-                {% if searched %}
-                    <p style="color: #d9534f; font-weight: bold;">⚠️ 予算に合う献立が見つかりませんでした。少し予算を上げるか、別の条件を試してください。</p>
                 {% else %}
-                    <p style="color: #666;">条件を入力して「提案してもらう」ボタンを押してください。</p>
+                    {% if searched %}
+                        <p style="color: #d9534f; font-weight: bold;">⚠️ 予算に合う献立が見つかりませんでした。少し予算を上げるか、別の条件を試してください。</p>
+                    {% else %}
+                        <p style="color: #666;">条件を入力して「提案してもらう」ボタンを押してください。</p>
+                    {% endif %}
                 {% endif %}
-            {% endif %}
+            </form>
         </div>
     </div>
 
     <div class="card">
         <h3>📝 食事履歴（これまでに食べたもの）</h3>
+        
+        <!-- 💡 履歴の合計金額を表示するカードを追加 -->
+        <div class="summary-badge">
+            💰 これまでの累計食費: <span style="font-size: 1.4em; color: #e91e63;">{{ total_history_cost }}</span> 円
+        </div>
+
         <table>
             <thead>
                 <tr>
